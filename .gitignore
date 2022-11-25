@@ -5,4 +5,3 @@ _book
 _bookdown_files
 rsconnect
 examples/r-notebook-stub.nb.html
-packages.bib
