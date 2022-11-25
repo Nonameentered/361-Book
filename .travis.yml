@@ -8,9 +8,9 @@ addons:
     - ghostscript
 
 before_script:
-  - travis_wait 30 chmod +x ./_build.sh
+  - chmod +x ./_build.sh
   - chmod +x ./_deploy.sh
 
 script:
-  - ./_build.sh
+  - travis_wait 30 ./_build.sh
   - ./_deploy.sh
