@@ -15,3 +15,5 @@ git add --all *
 git commit -m "Update the book" || true
 git remote add origin-pages https://${GITHUB_PAT}@github.com/${TRAVIS_REPO_SLUG}.git > /dev/null 2>&1
 git push --quiet --set-upstream origin-pages gh-pages
+# See for setting up TravisCI for projects that push back to github
+# https://gist.github.com/willprice/e07efd73fb7f13f917ea
