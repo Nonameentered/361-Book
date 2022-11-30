@@ -1,7 +1,13 @@
 fig:nice-fig
 tab:nice-tab
+publishing-rbookdown-with-github-pages-and-travis
+bookdown-guide
+files-to-modifyadd
+travis.yml
+build.sh
+description-file
 travis
-saving-time
+note-on-credit
 intro
 literature
 methods

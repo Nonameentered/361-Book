@@ -120,7 +120,7 @@
 
 \title{A Minimal Book Example}
 \author{Yihui Xie}
-\date{2022-11-26}
+\date{2022-11-30}
 
 \begin{document}
 \maketitle
@@ -129,17 +129,123 @@
 \setcounter{tocdepth}{1}
 \tableofcontents
 }
+\hypertarget{publishing-rbookdown-with-github-pages-and-travis}{%
+\chapter{Publishing Rbookdown with Github Pages and Travis}\label{publishing-rbookdown-with-github-pages-and-travis}}
+
+\hypertarget{bookdown-guide}{%
+\section{Bookdown Guide}\label{bookdown-guide}}
+
+While we take the same approach as the \href{https://bookdown.org/yihui/bookdown/github.html}{Bookdown guide}, I update some steps to reflect changes with Travis.
+
+First, as in the guide, set up gh-pages branch as noted in the guide:
+
+\begin{verbatim}
+# assume you have initialized the git repository,
+# and are under the directory of the book repository now
+
+# create a branch named gh-pages and clean up everything
+git checkout --orphan gh-pages
+git rm -rf .
+
+# create a hidden file .nojekyll
+touch .nojekyll
+git add .nojekyll
+
+git commit -m "Initial commit"
+git push origin gh-pages
+\end{verbatim}
+
+\hypertarget{files-to-modifyadd}{%
+\subsection{Files to Modify/Add}\label{files-to-modifyadd}}
+
+\hypertarget{travis.yml}{%
+\subsubsection{.travis.yml}\label{travis.yml}}
+
+Depending on your file system, you may not see this file immediately because it starts with a period.
+Look up on your system how to ``view hidden files'' if you wish to see it.
+
+\begin{verbatim}
+language: r
+cache: packages
+pandoc_version: 2.9.2.1
+
+addons:
+  apt:
+    packages:
+    - ghostscript
+
+before_script:
+  - chmod +x ./_build.sh
+  - chmod +x ./_deploy.sh
+
+script:
+  - ./_build.sh
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_PAT  # Set in the settings page of your repository, as a secure variable
+  keep_history: true
+  on:
+    branch: main
+  local_dir: _book/
+  committer_from_gh: true
+\end{verbatim}
+
+\hypertarget{build.sh}{%
+\subsubsection{\_build.sh}\label{build.sh}}
+
+You'll need to specify the commands to build your book in Travis:
+
+\begin{verbatim}
+#!/bin/sh
+
+set -ev
+
+Rscript -e "bookdown::render_book('index.Rmd', 'bookdown::gitbook')"
+tlmgr option repository ctan
+Rscript -e "bookdown::render_book('index.Rmd', 'bookdown::pdf_book')"
+Rscript -e "bookdown::render_book('index.Rmd', 'bookdown::epub_book')"
+\end{verbatim}
+
+\hypertarget{description-file}{%
+\subsubsection{Description File}\label{description-file}}
+
+As noted on the Bookdown guide:
+
+\begin{quote}
+The only thing in this file that really matters is the specification of dependencies.
+All dependencies will be installed via the devtools package.
+If a dependency is on CRAN or BioConductor, you can simply list it in the Imports field of the DESCRIPTION file.
+If it is on GitHub, you may use the Remotes field to list its repository name.
+\end{quote}
+
+So the takeaway is, list your RPackages used in \texttt{Imports}. Here's the example file:
+
+\begin{verbatim}
+Package: placeholder
+Type: Book
+Title: Does not matter.
+Version: 0.0.1
+Imports: bookdown, ggplot2
+Remotes: rstudio/bookdown
+\end{verbatim}
+
 \hypertarget{travis}{%
-\chapter{Travis}\label{travis}}
+\subsection{Travis}\label{travis}}
 
 Let's do everything through the website to keep things simple and not using the terminal!
 
+Create a Github PAT through the Github website and sign up for Travis CI.
+
 You should see a list of your repositories and in your \href{https://app.travis-ci.com/account/repositories}{profile}, you should be sure to activate Github Apps integration.
 
-\hypertarget{saving-time}{%
-\section{Saving Time}\label{saving-time}}
+When you find your repository in the dashboard, click it and in ``More options\textgreater Settings'' enter the Github PAT value into the Environmental Variables section. Name it \texttt{GITHUB\_PAT} because that is what is specified in \texttt{.travis.yml}.
 
-We have limited free credits available on Travis CI. This means that we have probably around \href{https://github.com/matsim-org/matsim-libs/issues/1259}{1000 build minutes} and the book make take around 10 minutes or even more to run. Ways to save time involve caching, throuch which we can add the following to our \texttt{.travis.yml} file:
+\hypertarget{note-on-credit}{%
+\subsubsection{Note on Credit}\label{note-on-credit}}
+
+We have limited free credits available on Travis CI. This means that we have probably around \href{https://github.com/matsim-org/matsim-libs/issues/1259}{1000 build minutes} and the book make take around 10 minutes or even more to run. Ways to save time involve caching, through which we can add the following to our \texttt{.travis.yml} file:
 
 \begin{verbatim}
 sudo: false

@@ -23,7 +23,7 @@
 <meta name="author" content="Yihui Xie" />
 
 
-<meta name="date" content="2022-11-26" />
+<meta name="date" content="2022-11-30" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -136,9 +136,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><a href="./">A Minimal Book Example</a></li>
 
 <li class="divider"></li>
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Travis</a>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Publishing Rbookdown with Github Pages and Travis</a>
 <ul>
-<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#saving-time"><i class="fa fa-check"></i><b>1.1</b> Saving Time</a></li>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#bookdown-guide"><i class="fa fa-check"></i><b>1.1</b> Bookdown Guide</a>
+<ul>
+<li class="chapter" data-level="1.1.1" data-path="index.html"><a href="index.html#files-to-modifyadd"><i class="fa fa-check"></i><b>1.1.1</b> Files to Modify/Add</a></li>
+<li class="chapter" data-level="1.1.2" data-path="index.html"><a href="index.html#travis"><i class="fa fa-check"></i><b>1.1.2</b> Travis</a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="2" data-path="intro.html"><a href="intro.html"><i class="fa fa-check"></i><b>2</b> Introduction</a></li>
 <li class="chapter" data-level="3" data-path="literature.html"><a href="literature.html"><i class="fa fa-check"></i><b>3</b> Literature</a></li>
@@ -176,15 +180,99 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="header">
 <h1 class="title">A Minimal Book Example</h1>
 <p class="author"><em>Yihui Xie</em></p>
-<p class="date"><em>2022-11-26</em></p>
+<p class="date"><em>2022-11-30</em></p>
 </div>
-<div id="travis" class="section level1 hasAnchor" number="1">
-<h1><span class="header-section-number">Chapter 1</span> Travis<a href="index.html#travis" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="publishing-rbookdown-with-github-pages-and-travis" class="section level1 hasAnchor" number="1">
+<h1><span class="header-section-number">Chapter 1</span> Publishing Rbookdown with Github Pages and Travis<a href="index.html#publishing-rbookdown-with-github-pages-and-travis" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="bookdown-guide" class="section level2 hasAnchor" number="1.1">
+<h2><span class="header-section-number">1.1</span> Bookdown Guide<a href="index.html#bookdown-guide" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>While we take the same approach as the <a href="https://bookdown.org/yihui/bookdown/github.html">Bookdown guide</a>, I update some steps to reflect changes with Travis.</p>
+<p>First, as in the guide, set up gh-pages branch as noted in the guide:</p>
+<pre><code># assume you have initialized the git repository,
+# and are under the directory of the book repository now
+
+# create a branch named gh-pages and clean up everything
+git checkout --orphan gh-pages
+git rm -rf .
+
+# create a hidden file .nojekyll
+touch .nojekyll
+git add .nojekyll
+
+git commit -m &quot;Initial commit&quot;
+git push origin gh-pages</code></pre>
+<div id="files-to-modifyadd" class="section level3 hasAnchor" number="1.1.1">
+<h3><span class="header-section-number">1.1.1</span> Files to Modify/Add<a href="index.html#files-to-modifyadd" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="travis.yml" class="section level4 hasAnchor" number="1.1.1.1">
+<h4><span class="header-section-number">1.1.1.1</span> .travis.yml<a href="index.html#travis.yml" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>Depending on your file system, you may not see this file immediately because it starts with a period.
+Look up on your system how to “view hidden files” if you wish to see it.</p>
+<pre><code>language: r
+cache: packages
+pandoc_version: 2.9.2.1
+
+addons:
+  apt:
+    packages:
+    - ghostscript
+
+before_script:
+  - chmod +x ./_build.sh
+  - chmod +x ./_deploy.sh
+
+script:
+  - ./_build.sh
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_PAT  # Set in the settings page of your repository, as a secure variable
+  keep_history: true
+  on:
+    branch: main
+  local_dir: _book/
+  committer_from_gh: true</code></pre>
+</div>
+<div id="build.sh" class="section level4 hasAnchor" number="1.1.1.2">
+<h4><span class="header-section-number">1.1.1.2</span> _build.sh<a href="index.html#build.sh" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>You’ll need to specify the commands to build your book in Travis:</p>
+<pre><code>#!/bin/sh
+
+set -ev
+
+Rscript -e &quot;bookdown::render_book(&#39;index.Rmd&#39;, &#39;bookdown::gitbook&#39;)&quot;
+tlmgr option repository ctan
+Rscript -e &quot;bookdown::render_book(&#39;index.Rmd&#39;, &#39;bookdown::pdf_book&#39;)&quot;
+Rscript -e &quot;bookdown::render_book(&#39;index.Rmd&#39;, &#39;bookdown::epub_book&#39;)&quot;
+</code></pre>
+</div>
+<div id="description-file" class="section level4 hasAnchor" number="1.1.1.3">
+<h4><span class="header-section-number">1.1.1.3</span> Description File<a href="index.html#description-file" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>As noted on the Bookdown guide:</p>
+<blockquote>
+<p>The only thing in this file that really matters is the specification of dependencies.
+All dependencies will be installed via the devtools package.
+If a dependency is on CRAN or BioConductor, you can simply list it in the Imports field of the DESCRIPTION file.
+If it is on GitHub, you may use the Remotes field to list its repository name.</p>
+</blockquote>
+<p>So the takeaway is, list your RPackages used in <code>Imports</code>. Here’s the example file:</p>
+<pre><code>Package: placeholder
+Type: Book
+Title: Does not matter.
+Version: 0.0.1
+Imports: bookdown, ggplot2
+Remotes: rstudio/bookdown</code></pre>
+</div>
+</div>
+<div id="travis" class="section level3 hasAnchor" number="1.1.2">
+<h3><span class="header-section-number">1.1.2</span> Travis<a href="index.html#travis" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Let’s do everything through the website to keep things simple and not using the terminal!</p>
+<p>Create a Github PAT through the Github website and sign up for Travis CI.</p>
 <p>You should see a list of your repositories and in your <a href="https://app.travis-ci.com/account/repositories">profile</a>, you should be sure to activate Github Apps integration.</p>
-<div id="saving-time" class="section level2 hasAnchor" number="1.1">
-<h2><span class="header-section-number">1.1</span> Saving Time<a href="index.html#saving-time" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>We have limited free credits available on Travis CI. This means that we have probably around <a href="https://github.com/matsim-org/matsim-libs/issues/1259">1000 build minutes</a> and the book make take around 10 minutes or even more to run. Ways to save time involve caching, throuch which we can add the following to our <code>.travis.yml</code> file:</p>
+<p>When you find your repository in the dashboard, click it and in “More options&gt;Settings” enter the Github PAT value into the Environmental Variables section. Name it <code>GITHUB_PAT</code> because that is what is specified in <code>.travis.yml</code>.</p>
+<div id="note-on-credit" class="section level4 hasAnchor" number="1.1.2.1">
+<h4><span class="header-section-number">1.1.2.1</span> Note on Credit<a href="index.html#note-on-credit" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>We have limited free credits available on Travis CI. This means that we have probably around <a href="https://github.com/matsim-org/matsim-libs/issues/1259">1000 build minutes</a> and the book make take around 10 minutes or even more to run. Ways to save time involve caching, through which we can add the following to our <code>.travis.yml</code> file:</p>
 <pre><code>sudo: false
 
 cache:
@@ -192,6 +280,8 @@ cache:
   directories:
     - $TRAVIS_BUILD_DIR/_bookdown_files</code></pre>
 
+</div>
+</div>
 </div>
 </div>
             </section>
