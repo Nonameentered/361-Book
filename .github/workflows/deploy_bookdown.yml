@@ -15,18 +15,18 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v1
       - name: Install rmarkdown
         run: Rscript -e 'install.packages(c("rmarkdown","bookdown"))'
-      - name: Cache renv
-        uses: actions/cache@v2
-        with:
-          path: ~/Library/Application Support/renv
-          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-renv-
-      - name: Restore packages
-        shell: Rscript {0}
-        run: |
-          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
-          renv::restore()
+      # - name: Cache renv
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ~/Library/Application Support/renv
+      #     key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-renv-
+      # - name: Restore packages
+      #   shell: Rscript {0}
+      #   run: |
+      #     if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+      #     renv::restore()
       - name: Install tinytext
         uses: r-lib/actions/setup-tinytex@v1
       - name: Render Book
